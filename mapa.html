@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>360</title>
+    <meta charset="utf-8">
+    <style>
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #map, #pano {
+        float:left;
+        height: 100%;
+        width: 50%;
+      }
+      /*#info {
+        height: 50px;
+        width: 50px;
+      }*/
+      a[href^="http://maps.google.com/maps"]{display:none !important}
+      a[href^="https://maps.google.com/maps"]{display:none !important}
+
+    .gmnoprint a, .gmnoprint span, .gm-style-cc {
+        display:none;
+    }
+    .gmnoprint div {
+        background:none !important;
+    }   
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <div id="pano"></div>
+    <!--<div id="info"></div>-->
+    <script>
+var lastImg = 0;
+var marker;
+var coords = eval(20.684552,-100.435019);
+function initPano() {
+  // Set up Street View and initially set it visible. Register the
+  // custom panorama provider function. Set the StreetView to display
+  // the custom panorama 'reception' which we check for below.
+  var center = {lat:20.684552, lng:-100.435019};
+  //var center = {lat: 895959.35947, lng: 932158.53006};
+  var map = new google.maps.Map(document.getElementById('map'), {
+    center: center,
+    zoom: 18,
+    
+  });
+  var panorama = new google.maps.StreetViewPanorama(
+    document.getElementById('pano'), {
+    pov: {
+          heading:35,
+          pitch: 5 //5
+        },  
+      pano: '1',
+      visible: true,
+      panoProvider: getCustomPanorama,
+      linksControl: true,
+  });
+
+  /*var icon = {
+      path: "M0 256c0 141.385 114.615 256 256 256s256-114.615 256-256-114.615-256-256-256-256 114.615-256 256zM464 256c0 114.875-93.125 208-208 208s-208-93.125-208-208 93.125-208 208-208 208 93.125 208 208z, M353.372 334.628l45.256-45.256-142.628-142.627-142.627 142.628 45.254 45.254 97.373-97.372z",
+      fillColor: '#FF0000',
+      fillOpacity: .6,
+      //anchor: new google.maps.Point(0,0),
+      strokeWeight: 0,
+      scale: .1,
+      rotation: 
+  }*/
+  
+  marker = new google.maps.Marker({
+    position: center,
+    map: map,
+    title: 'Usted esta aqui!',
+    //icon: icon
+  });
+  
+  panorama.addListener('links_changed', function() {
+      //console.log(panorama.getPano());
+    //if (panorama.getPano() === outsideGoogle.location.pano) {
+    var iPan = parseInt(panorama.getPano());
+    var prev = iPan - 1;
+    var next = iPan + 1;
+      panorama.getLinks().push({
+        description: '',
+        heading: 180,
+        panoProvider: getCustomPanorama,
+        pano: prev
+      });
+      panorama.getLinks().push({
+        description: '',
+        heading: 0,
+        panoProvider: getCustomPanorama,
+        pano: next
+      });
+    //}
+  });
+  
+}
+
+// Return a pano image given the panoID.
+function getCustomPanoramaTileUrl(pano, zoom, tileX, tileY) {
+  
+  var panoInt = parseInt(pano);
+  // Note: robust custom panorama methods would require tiled pano data.
+  // Here we're just using a single tile, set to the tile size and equal
+  // to the pano "world" size.
+  //console.log("custom pano:" + pano + " zoom:" + zoom + " tileX:" +  tileX + " tileY:" +  tileY);
+  //console.log("custom pano:" + pano + " zoom:" + zoom + " tileX:" +  tileX + " tileY:" +  tileY);
+  console.log("primer console"+'img/'+('0000' + (panoInt + 1))+'_'+(tileX)+'_'+(tileY)+'.jpg')
+  //$( ".widget-scene-canvas" ).css("background","#fff");
+  //var div = document.getElementsByClassName("widget-scene-canvas");
+  //div[0].style.background = "red";
+  //document.getElementById("info").innerHTML = pano + "," + <?php echo $ang?> + "," + <?php echo $lat?> + "," + <?php echo $lng?>;
+  var image_p = new Image();
+  var image_n = new Image();
+  var panoInt = parseInt(pano);
+  if(lastImg == 0){
+    image_p.src =  'img/' + ('0000' + (panoInt + 1)).slice(-5) +'.jpg';
+    image_n.src =  'img/' + ('0000' + (panoInt + 1)).slice(-5) +'.jpg';
+  }
+  else if (pano > lastImg){
+    image_p.src =  'img/' + ('0000' + (panoInt + 1)).slice(-5) +'.jpg';
+      console.log("console 2"+'img/' + ('0000' + (panoInt + 1)).slice(-5) +'.jpg')
+  }
+  else{
+    image_n.src =  'img/' + ('0000' + (panoInt - 1)).slice(-5) +'.jpg';
+      console.log(" console3"+'img/' + ('0000' + (panoInt - 1)).slice(-5) +'.jpg');
+  }
+  lastImg = pano;
+ // marker.setPosition(coords[panoInt - <?php echo $startIndx?>]);
+  //console.log("coords: <?php echo $startIndx?> " + panoInt);
+  return 'img/' + ('00000' + pano).slice(-5) +'.jpg';
+  
+}
+
+// Construct the appropriate StreetViewPanoramaData given
+// the passed pano IDs.
+function getCustomPanorama(pano, zoom, tileX, tileY) {
+       
+         return {
+           location: {
+             pano: pano,
+             description: 'STARTECHNOLOGY'
+           },
+           links: [],
+           // The text for the copyright control.
+           // The definition of the tiles for this panorama.
+           tiles: {
+             tileSize: new google.maps.Size(2048, 1024),
+             worldSize: new google.maps.Size(2048, 1024),
+             // The heading in degrees at the origin of the panorama
+             // tile set.
+             centerHeading: 105,
+             getTileUrl: getCustomPanoramaTileUrl
+           }
+         };
+       }
+     
+
+    </script>
+    <script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD_0rXyOmnmfoN4zCwnCnAYh5oV9MfHxjA&callback=initPano"
+        async defer>
+    </script>
+  </body>
+</html>
